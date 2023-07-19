@@ -15,26 +15,7 @@ import userService, { Users } from "./services/user-service";
 
 // export const categories = ["Utilities","Groceries","Entertainment"];
 function App() {
-  // const [users, setUsers] = useState<Users[]>([]);
-  // const [error, setError] = useState("");
-  // const [isloading, setIsLoading] = useState(false);
-  // useEffect(() => {
-  //   setIsLoading(true);
-  //   const { request, cancel } = userService.getAll<Users>();
-  //   request
-  //     .then((res) => {
-  //       setUsers(res.data);
-  //       setIsLoading(false);
-  //     })
-  //     .catch((err) => {
-  //       if (err instanceof CanceledError) return;
-  //       setError(err.message);
-  //       setIsLoading(false);
-  //     });
 
-  //   return () => cancel();
-  //   // .then(res => console.log(res.data[0].name))
-  // }, []);
   const {setError,setUsers,users,error,isloading} = useUsers();
   const addUser = () => {
     const newUser = { id: users.length + 1, name: "Ace" };
