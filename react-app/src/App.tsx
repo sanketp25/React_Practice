@@ -1,76 +1,64 @@
 import { useEffect, useRef, useState } from "react";
-import { Cart } from "./components/Cart";
-import { Expandable } from "./components/Expandable";
-import { Form } from "./components/Form";
-import { NavBar } from "./components/NavBar";
-import { ExpenseFilter } from "./expense-tracker/components/ExpenseFilter";
-import ExpenseForm from "./expense-tracker/components/ExpenseForm";
-import { ExpenseList } from "./expense-tracker/components/ExpenseList";
-import categories from "./expense-tracker/categories";
-import { ProductList } from "./components/ProductList";
+// import { Cart } from "./components/Cart";
+// import { Expandable } from "./components/Expandable";
+// import { Form } from "./components/Form";
+// import { NavBar } from "./components/NavBar";
+// import { ExpenseFilter } from "./expense-tracker/components/ExpenseFilter";
+// import ExpenseForm from "./expense-tracker/components/ExpenseForm";
+// import { ExpenseList } from "./expense-tracker/components/ExpenseList";
+// import categories from "./expense-tracker/categories";
+// import { ProductList } from "./components/ProductList";
 // import axios, { CanceledError } from "axios";
-import apiClients, {CanceledError} from '../src/services/api-clients';
+import { CanceledError } from "../src/services/api-clients";
+import useUsers from "./hooks/use-users";
+import userService, { Users } from "./services/user-service";
 
-interface Users {
-  id: number;
-  name: string;
-}
 // export const categories = ["Utilities","Groceries","Entertainment"];
 function App() {
-  const [users, setUsers] = useState<Users[]>([]);
-  const [error, setError] = useState("");
-  const [isloading, setIsLoading] = useState(false);
-  useEffect(() => {
-    const controller = new AbortController();
-    setIsLoading(true);
-    apiClients
-      .get<Users[]>("/users", {
-        signal: controller.signal,
-      })
-      .then((res) => {
-        setUsers(res.data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (err instanceof CanceledError) return;
-        setError(err.message);
-        setIsLoading(false);
-      });
+  // const [users, setUsers] = useState<Users[]>([]);
+  // const [error, setError] = useState("");
+  // const [isloading, setIsLoading] = useState(false);
+  // useEffect(() => {
+  //   setIsLoading(true);
+  //   const { request, cancel } = userService.getAll<Users>();
+  //   request
+  //     .then((res) => {
+  //       setUsers(res.data);
+  //       setIsLoading(false);
+  //     })
+  //     .catch((err) => {
+  //       if (err instanceof CanceledError) return;
+  //       setError(err.message);
+  //       setIsLoading(false);
+  //     });
 
-    return () => controller.abort();
-    // .then(res => console.log(res.data[0].name))
-  }, []);
+  //   return () => cancel();
+  //   // .then(res => console.log(res.data[0].name))
+  // }, []);
+  const {setError,setUsers,users,error,isloading} = useUsers();
   const addUser = () => {
     const newUser = { id: users.length + 1, name: "Ace" };
     setUsers([...users, newUser]);
 
-    apiClients
-      .post("/users", newUser)
-      .then((res) => setUsers([res.data, ...users]));
+    userService.add(newUser).then((res) => setUsers([res.data, ...users]));
   };
   const deleteUser = (user: Users) => {
     const originalUsers = [...users];
     setUsers(users.filter((u) => u.id !== user.id));
-    apiClients
-      .delete("users/" + user.id)
-      .catch((err) => {
-        setError(err.message), setUsers(originalUsers);
-      });
+    userService.delete(user).catch((err) => {
+      setError(err.message), setUsers(originalUsers);
+    });
   };
-  const updateUser = (user: Users) =>{
+  const updateUser = (user: Users) => {
+    const originalUsers = [...users];
+    const updatedUser = { ...user, name: user.name + "!" };
+    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
 
-    const originalUsers = [...users]
-    const updatedUser = {...user,name:user.name + '!'}
-    setUsers(users.map((u)=> u.id === user.id ? updatedUser : u));
-
-    apiClients.patch("/users/"+user.id,updatedUser)
-    .catch(err =>{
+    userService.update(updatedUser).catch((err) => {
       setError(err.message);
       setUsers(originalUsers);
-    })
-
-
-  }
+    });
+  };
   return (
     <>
       {error && <p className="text-danger">{error}</p>}
